@@ -54,12 +54,7 @@ io.on('connection', async (socket) => {
   socket.on('chatMessage', async (msgData) => {
     const newMsg = new Message(msgData);
     await newMsg.save();
-    socket.emit('chatMessage', newMsg);
-  });
-
-    socket.on('chatMessageAdmin', async (msgData) => {
-    const newMsg = new Message(msgData);
-    await newMsg.save();
+    if(userName === newMsg.sessionId) socket.emit('chatMessage', newMsg);
     io.emit("newMessageForAdmin", newMsg);
   });
 
