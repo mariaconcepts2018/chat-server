@@ -55,6 +55,11 @@ io.on('connection', async (socket) => {
     const newMsg = new Message(msgData);
     await newMsg.save();
     socket.emit('chatMessage', newMsg);
+  });
+
+    socket.on('chatMessageAdmin', async (msgData) => {
+    const newMsg = new Message(msgData);
+    await newMsg.save();
     io.emit("newMessageForAdmin", newMsg);
   });
 
