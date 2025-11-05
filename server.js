@@ -11,6 +11,8 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
+const user = {};
+
 app.use(cors({
   origin: [process.env.FRONTEND], // Next.js dev URL
   methods: ["GET", "POST"],
@@ -41,6 +43,23 @@ app.use(express.static(path.join(__dirname, 'public')));
 io.on('connection', async (socket) => {
   console.log('🟢 New client connected:', socket.id);
 
+  socket.on('register', (userId) =>{
+    user[userId] = socket.id;
+    console.log('User registred', userId)
+
+  })
+
+    socket.on('adminChat', async ( msgData) =>{
+          const newMsg = new Message(msgData);
+    await newMsg.save();
+    const targetId = msgData.sessionId;
+    const targetSocket = user[targetId];
+    if(targetSocket){
+      io.to(targetSocket).emit('messageFromAdmin', msgData)
+    }
+
+  })
+
 
   // Send recent messages to client
   
@@ -54,7 +73,7 @@ io.on('connection', async (socket) => {
   socket.on('chatMessage', async (msgData) => {
     const newMsg = new Message(msgData);
     await newMsg.save();
-    if(userName === newMsg.sessionId) socket.emit('chatMessage', newMsg);
+    socket.emit('chatMessage', newMsg);
     io.emit("newMessageForAdmin", newMsg);
   });
 
