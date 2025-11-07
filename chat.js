@@ -7,8 +7,7 @@ const chat = (server) => {
 const user = {};
 const io = new Server(server, {
     cors: {
-    origin: [process.env.FRONTEND],
-    methods: ["GET", "POST"],
+    origin: [process.env.FRONTEND, process.env.FRONTEND_ADMIN],
     credentials: true
   }
 });
