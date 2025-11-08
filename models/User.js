@@ -2,9 +2,10 @@ import mongoose from 'mongoose';
 
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  phoneNumber: { type: String, required: true, unique: true },
+  phone: { type: String, required: true, unique: true },
   email: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  isVerified: { type: Boolean, default: false }
 });
 
 export default mongoose.models.UserSchema || mongoose.model('User', UserSchema);
