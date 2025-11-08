@@ -4,6 +4,13 @@ import Message from './models/Message.js';
 export default function chatServer(io){
     // ✅ Setup Socket.IO with CORS
 const user = {};
+const io = new Server(server, {
+    cors: {
+    origin: [process.env.FRONTEND],
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
@@ -59,3 +66,5 @@ io.on('connection', async (socket) => {
 });
 
 }
+
+export default chat;
