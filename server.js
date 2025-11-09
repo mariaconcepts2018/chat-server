@@ -5,7 +5,7 @@ import cors from "cors";
 import chatServer from "./chatServer.js"
 import path from 'path';
 import mongoose from 'mongoose';
-import {postUser, sendOtp, verifyOtp} from './route.js';
+import { sendOtp, verifyOtp} from './route.js';
 import { Server } from 'socket.io';
 
 dotenv.config();
@@ -37,7 +37,6 @@ mongoose
   .catch((err) => console.error("PostUser: MongoDB connection error:", err));
 
 // POST route to store user data
-app.post("/api/users", postUser );
 app.post("/api/send-otp", sendOtp);
 app.post("/api/verify-otp", verifyOtp);
 

@@ -5,7 +5,6 @@ const UserSchema = new mongoose.Schema({
   phone: { type: String, required: true, unique: true },
   email: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
-  isVerified: { type: Boolean, default: false }
 });
 
 export default mongoose.models.UserSchema || mongoose.model('User', UserSchema);

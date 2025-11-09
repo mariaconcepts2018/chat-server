@@ -26,6 +26,7 @@ io.on('connection', async (socket) => {
     const targetId = msgData.sessionId;
     const targetSocket = user[targetId];
     if(targetSocket){
+      socket.emit('chatMessage', msgData);
       io.to(targetSocket).emit('messageFromAdmin', msgData)
     }
 

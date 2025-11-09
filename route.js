@@ -6,26 +6,6 @@ dotenv.config();
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 
-
-export const postUser= async (req, res) => {
-  
-  try {
-    const { name, phone, email } = req.body;
-
-    if (!name || !phone || !email) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    const newUser = new User({ name, phone, email });
-    await newUser.save();
-
-    res.status(201).json({ message: "User saved successfully", user: newUser });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-}
-
 export const sendOtp = async (req, res) => {
   try {
     const { phone } = req.body;
@@ -45,7 +25,7 @@ export const sendOtp = async (req, res) => {
 
 export const verifyOtp = async (req, res) => {
   try {
-    const { phone, code } = req.body;
+    const { name, phone, email, code } = req.body;
 
     if (!phone || !code)
       return res.status(400).json({ message: "Phone and code are required" });
@@ -55,8 +35,17 @@ export const verifyOtp = async (req, res) => {
       .create({ to: `+91${phone}`, code });
 
     if (verificationCheck.status === "approved") {
-      await User.findOneAndUpdate({ phone }, { isVerified: true }, { upsert: true });
-      res.json({ message: "Phone number verified successfully" });
+      
+
+  if (!name || !phone || !email) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  const newUser = new User({ name, phone, email });
+  await newUser.save();
+
+  res.status(201).json({ message: "User saved successfully", user: newUser });
+
     } else {
       res.status(400).json({ message: "Invalid OTP" });
     }
