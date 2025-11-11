@@ -5,7 +5,7 @@ import cors from "cors";
 import chatServer from "./chatServer.js"
 import path from 'path';
 import mongoose from 'mongoose';
-import { sendOtp, verifyOtp} from './route.js';
+import { sendOtp, updateUser, verifyOtp} from './route.js';
 import { Server } from 'socket.io';
 
 dotenv.config();
@@ -39,6 +39,7 @@ mongoose
 // POST route to store user data
 app.post("/api/send-otp", sendOtp);
 app.post("/api/verify-otp", verifyOtp);
+app.post("/api/update-user", updateUser );
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
