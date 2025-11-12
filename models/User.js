@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -7,13 +7,16 @@ const UserSchema = new mongoose.Schema({
   location: { type: String, required: true },
   leadSource: { type: String },
   service: { type: String },
-  projectType: { type: String },
   houseType: { type: String },
   floors: { type: String },
-  leadSource: { type: String },
   bhkType: { type: String },
   services: { type: String },
   createdAt: { type: Date, default: Date.now },
+  leadStatus: { type: String, default: "open" },
+  appointmentDate: { type: Date },
+  notes: { type: String },
+  modifiedBy: { type: String },
+  modifiedOn: { type: Date },
 });
 
-export default mongoose.models.UserSchema || mongoose.model('User', UserSchema);
+export default mongoose.models.UserSchema || mongoose.model("User", UserSchema);
