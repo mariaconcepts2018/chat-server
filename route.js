@@ -94,8 +94,8 @@ export const fetchUsers = async (req, res) => {
     if (createdAt) filter.createdAt = createdAt;
     if (leadSource) filter.leadSource = leadSource;
     if (projectType) filter.projectType = projectType;
-    if (service) filter.createdAt = service;
-    if (leadStatus) filter.createdAt = leadStatus;
+    if (service) filter.service = service;
+    if (leadStatus) filter.leadStatus = leadStatus;
 
     const users = await User.find(filter, {
       _id: 1,
