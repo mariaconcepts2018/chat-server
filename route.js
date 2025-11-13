@@ -90,7 +90,7 @@ export const fetchUsers = async (req, res) => {
     const filter = {};
 
     if (name) filter.name = new RegExp(name, "i"); // case-insensitive match
-    if (id) filter.id = id;
+    if (id) filter._id = id;
     if (createdAt) filter.createdAt = createdAt;
     if (leadSource) filter.leadSource = leadSource;
     if (projectType) filter.projectType = projectType;
