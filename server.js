@@ -11,9 +11,13 @@ import {
   sendOtp,
   updateUser,
   updateUserAdmin,
+  uploadFile,
   verifyOtp,
 } from "./route.js";
 import { Server } from "socket.io";
+import multer from "multer";
+
+const upload = multer({ dest: "uploads/" });
 
 dotenv.config();
 const app = express();
@@ -51,6 +55,7 @@ app.post("/api/update-user", updateUser);
 app.get("/api/admin/users", fetchUsers);
 app.get("/api/admin/users/:userId", fetchUser);
 app.post("/api/admin/update-user/:userId", updateUserAdmin);
+app.post("/api/admin/uploadFile", upload.single("file"), uploadFile);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () =>

@@ -1,6 +1,8 @@
 import User from "./models/User.js";
 import twilio from "twilio";
 import dotenv from "dotenv";
+import XLSX from "xlsx";
+
 dotenv.config();
 
 const client = twilio(
@@ -147,5 +149,48 @@ export const updateUserAdmin = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const uploadFile = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+    // Read uploaded XLSX file
+    const workbook = XLSX.readFile(req.file.path);
+
+    // Sheet name (take first sheet)
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+
+    // Convert sheet to JSON array
+    const rows = XLSX.utils.sheet_to_json(sheet);
+
+    /*
+        rows example:
+        [
+          { name: "John", phone: "9999999999", email: "j@gmail.com", address: "Mumbai" },
+          { name: "Sam", phone: "8888888888", email: "s@gmail.com", address: "Delhi" }
+        ]
+    */
+
+    // Allowed fields to store in MongoDB
+    const allowedFields = ["name", "service", "phone", "email", "location"];
+
+    const formattedData = rows.map((row) => {
+      const data = {};
+      allowedFields.forEach((key) => {
+        if (row[key] !== undefined) data[key] = row[key];
+      });
+      return data;
+    });
+
+    // Insert all rows
+    await User.insertMany({ ...formattedData, leadSource: "offline" });
+
+    res.json({ status: "success", inserted: formattedData.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 };
