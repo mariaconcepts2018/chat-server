@@ -185,10 +185,15 @@ export const uploadFile = async (req, res) => {
       return data;
     });
 
-    // Insert all rows
-    await User.insertMany({ ...formattedData, leadSource: "offline" });
+    const data = formattedData.map((item) => ({
+      ...item,
+      leadSource: "offline",
+    }));
 
-    res.json({ status: "success", inserted: formattedData.length });
+    // Insert all rows
+    await User.insertMany(data);
+
+    res.json({ status: "success", inserted: data.length });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
