@@ -16,6 +16,7 @@ import {
 } from "./route.js";
 import { Server } from "socket.io";
 import multer from "multer";
+import twilioWebhook from "./twilioWebhook.js";
 
 const upload = multer({ dest: "uploads/" });
 
@@ -48,10 +49,13 @@ mongoose
   .then(() => console.log("PostUser: MongoDB connected:"))
   .catch((err) => console.error("PostUser: MongoDB connection error:", err));
 
+app.post("/twilio-webhook", twilioWebhook);
+
 // POST route to store user data
 app.post("/api/send-otp", sendOtp);
 app.post("/api/verify-otp", verifyOtp);
 app.post("/api/update-user", updateUser);
+
 app.get("/api/admin/users", fetchUsers);
 app.get("/api/admin/users/:userId", fetchUser);
 app.post("/api/admin/update-user/:userId", updateUserAdmin);
