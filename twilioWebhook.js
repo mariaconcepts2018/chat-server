@@ -1,46 +1,74 @@
+import User from "./models/User.js";
+
+const sessions = {}; // in-memory store
+
 export default async function twilioWebhook(req, res) {
-  const sessions = {};
-
-  const MessagingResponse = twilio.twiml.MessagingResponse;
-  const twiml = new MessagingResponse();
-
   const from = req.body.From;
-  const message = req.body.Body.trim();
+  const phoneNumber = from.replace("whatsapp:", "");
+  const incomingMsg = req.body.Body?.trim();
 
+  // Initialize session for new users
   if (!sessions[from]) {
-    sessions[from] = { step: 1, data: {} };
-    twiml.message("Hi! Welcome.\nWhat is your name?");
-    return res.type("text/xml").send(twiml.toString());
+    sessions[from] = { step: "start" };
   }
 
-  const session = sessions[from];
+  const user = sessions[from];
 
-  if (session.step === 1) {
-    session.data.name = message;
-    session.step = 2;
-    twiml.message("Great! Please enter your email address.");
-  } else if (session.step === 2) {
-    session.data.email = message;
-    session.step = 3;
-    twiml.message("Thanks! Now, tell me about your project.");
-  } else if (session.step === 3) {
-    session.data.project = message;
+  // Conversation logic
+  switch (user.step) {
+    case "start":
+      user.step = "name";
+      return reply(
+        res,
+        "👋 Hi! Let's get your details.\n\nWhat is your *Name*?"
+      );
 
-    session.step = 4;
-    twiml.message("Now, tell me about your property type.");
+    case "name":
+      user.name = incomingMsg;
+      user.step = "email";
+      return reply(
+        res,
+        `Nice to meet you *${user.name}*! 😊\nPlease enter your *Email*:`
+      );
 
-    console.log(session.data);
+    case "email":
+      user.email = incomingMsg;
+      user.step = "location";
+      return reply(res, "Great! Now please type your *Location*:");
 
-    // Send collected data to your backend API
-    // await axios.post(
-    //   "https://your-backend.com/api/whatsapp-data",
-    //   session.data
-    // );
+    case "location":
+      user.location = incomingMsg;
+      user.step = "done";
 
-    twiml.message("Thank you! Your details have been submitted.");
+      console.log("\n📥 New Form Submission:");
+      const data = { ...user, phone: phoneNumber, leadSource: "whatsapp" };
 
-    delete sessions[from]; // reset conversation
+      try {
+        const newUser = new User(data);
+        await newUser.save();
+        return reply(
+          res,
+          `🎉 *Thank You!*\n\nHere are your details:\n` +
+            `• *Name:* ${user.name}\n` +
+            `• *Email:* ${user.email}\n` +
+            `• *Location:* ${user.location}\n\n` +
+            `We will contact you shortly!`
+        );
+      } catch (error) {
+        console.log("server Error");
+        return reply(res, "Your details have already been recorded. ✔️");
+      }
+
+    default:
+      return reply(res, "Your details have already been recorded. ✔️");
   }
+}
 
-  res.type("text/xml").send(twiml.toString());
+function reply(res, text) {
+  res.set("Content-Type", "text/xml");
+  return res.send(`
+    <Response>
+      <Message>${text}</Message>
+    </Response>
+  `);
 }

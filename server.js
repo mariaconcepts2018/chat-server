@@ -49,7 +49,7 @@ mongoose
   .then(() => console.log("PostUser: MongoDB connected:"))
   .catch((err) => console.error("PostUser: MongoDB connection error:", err));
 
-app.post("/twilio-webhook", twilioWebhook);
+app.post("/whatsapp", twilioWebhook);
 
 // POST route to store user data
 app.post("/api/send-otp", sendOtp);
