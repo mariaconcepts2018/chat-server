@@ -6,6 +6,7 @@ import chatServer from "./chatServer.js";
 import path from "path";
 import mongoose from "mongoose";
 import {
+  fetchCounts,
   fetchUser,
   fetchUsers,
   sendOtp,
@@ -58,6 +59,7 @@ app.post("/api/update-user", updateUser);
 
 app.get("/api/admin/users", fetchUsers);
 app.get("/api/admin/users/:userId", fetchUser);
+app.get("/api/admin/users-count", fetchCounts);
 app.post("/api/admin/update-user/:userId", updateUserAdmin);
 app.post("/api/admin/uploadFile", upload.single("file"), uploadFile);
 

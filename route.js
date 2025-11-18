@@ -131,6 +131,18 @@ export const fetchUser = async (req, res) => {
   }
 };
 
+export const fetchCounts = async (req, res) => {
+  try {
+    const open = await User.countDocuments({ leadStatus: "open" });
+    const pending = await User.countDocuments({ leadStatus: "pending" });
+    const closed = await User.countDocuments({ leadStatus: "closed" });
+
+    const total = open + pending + closed;
+
+    res.json({ open, pending, closed, total });
+  } catch (error) {}
+};
+
 export const updateUserAdmin = async (req, res) => {
   try {
     const userId = req.params.userId;
