@@ -25,13 +25,17 @@ export const updateUser = async (req, res) => {
 
 export const sendOtp = async (req, res) => {
   try {
-    const { phone } = req.body;
+    const { phone, company } = req.body;
 
     if (!phone)
       return res.status(400).json({ message: "Phone number is required" });
 
     await client.verify.v2
-      .services(process.env.TWILIO_SERVICE_SID)
+      .services(
+        company === "mariaconcepts"
+          ? process.env.TWILIO_SERVICE_SID_1
+          : process.env.TWILIO_SERVICE_SID_2
+      )
       .verifications.create({ to: `+91${phone}`, channel: "sms" });
 
     res.json({ message: "OTP sent successfully" });
