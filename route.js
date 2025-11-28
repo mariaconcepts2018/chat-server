@@ -43,23 +43,34 @@ export const sendOtp = async (req, res) => {
 
 export const verifyOtp = async (req, res) => {
   try {
-    const { name, phone, code, email, location } = req.body;
+    const { name, phone, code, email, location, leadStatus, company } =
+      req.body;
 
     if (!phone || !code)
       return res.status(400).json({ message: "Phone and code are required" });
 
-    // const verificationCheck = await client.verify.v2.services(process.env.TWILIO_SERVICE_SID)
-    //   .verificationChecks
-    //   .create({ to: `+91${phone}`, code });
+    const verificationCheck = await client.verify.v2
+      .services(
+        company === "mariaconcepts"
+          ? process.env.TWILIO_SERVICE_SID_1
+          : TWILIO_SERVICE_SID_2
+      )
+      .verificationChecks.create({ to: `+91${phone}`, code });
 
-    if (code === "1234") {
-      // if (verificationCheck.status === "approved") {
-
-      if (!name || !phone || !email) {
+    // if (code === "1234") {
+    if (verificationCheck.status === "approved") {
+      if (!name || !phone || !email || !leadStatus || !company) {
         return res.status(400).json({ message: "All fields are required" });
       }
 
-      const newUser = new User({ name, phone, email, location });
+      const newUser = new User({
+        name,
+        phone,
+        email,
+        location,
+        leadStatus,
+        company,
+      });
       await newUser.save();
 
       res
@@ -83,6 +94,7 @@ export const fetchUsers = async (req, res) => {
       name,
       createdAt,
       leadSource,
+      company,
       projectType,
       service,
       leadStatus,
@@ -98,6 +110,7 @@ export const fetchUsers = async (req, res) => {
     if (projectType) filter.projectType = projectType;
     if (service) filter.service = service;
     if (leadStatus) filter.leadStatus = leadStatus;
+    if (company) filter.company = company;
 
     const users = await User.find(filter, {
       _id: 1,
@@ -109,6 +122,7 @@ export const fetchUsers = async (req, res) => {
       leadStatus: 1,
       modifiedBy: 1,
       modifiedOn: 1,
+      company: 1,
     }).sort({ createdAt: -1 });
 
     res.json({ count: users.length, users });
@@ -187,7 +201,14 @@ export const uploadFile = async (req, res) => {
     */
 
     // Allowed fields to store in MongoDB
-    const allowedFields = ["name", "service", "phone", "email", "location"];
+    const allowedFields = [
+      "name",
+      "service",
+      "phone",
+      "email",
+      "location",
+      "company",
+    ];
 
     const formattedData = rows.map((row) => {
       const data = {};
