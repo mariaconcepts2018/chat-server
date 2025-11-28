@@ -37,7 +37,11 @@ const io = new Server(server, {
 
 app.use(
   cors({
-    origin: [process.env.FRONTEND, process.env.FRONTEND_ADMIN], // Next.js dev URL
+    origin: [
+      process.env.FRONTEND_1,
+      process.env.FRONTEND_2,
+      process.env.FRONTEND_ADMIN,
+    ], // Next.js dev URL
     methods: ["GET", "POST"],
     credentials: true,
   })
