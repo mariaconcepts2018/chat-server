@@ -53,7 +53,7 @@ export const verifyOtp = async (req, res) => {
       .services(
         company === "mariaconcepts"
           ? process.env.TWILIO_SERVICE_SID_1
-          : TWILIO_SERVICE_SID_2
+          : process.env.TWILIO_SERVICE_SID_2
       )
       .verificationChecks.create({ to: `+91${phone}`, code });
 
