@@ -54,7 +54,7 @@ app.use(express.static(path.join(__dirname, "public")));
 chatServer(io);
 
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI, { dbName: process.env.DB_NAME_USER })
   .then(() => console.log("PostUser: MongoDB connected:"))
   .catch((err) => console.error("PostUser: MongoDB connection error:", err));
 

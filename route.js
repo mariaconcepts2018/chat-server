@@ -47,8 +47,10 @@ export const sendOtp = async (req, res) => {
 
 export const verifyOtp = async (req, res) => {
   try {
-    const { name, phone, code, email, location, leadStatus, company } =
+    const { name, phone, code, email, location, company, leadSource } =
       req.body;
+
+    console.log(phone);
 
     if (!phone || !code)
       return res.status(400).json({ message: "Phone and code are required" });
@@ -57,13 +59,13 @@ export const verifyOtp = async (req, res) => {
       .services(
         company === "mariaconcepts"
           ? process.env.TWILIO_SERVICE_SID_1
-          : process.env.TWILIO_SERVICE_SID_2
+          : process.env.TWILIO_SERVICE_SID_1 //TWILIO_SERVICE_SID_2
       )
       .verificationChecks.create({ to: `+91${phone}`, code });
 
     // if (code === "1234") {
     if (verificationCheck.status === "approved") {
-      if (!name || !phone || !email || !leadStatus || !company) {
+      if (!name || !phone || !email || !company) {
         return res.status(400).json({ message: "All fields are required" });
       }
 
@@ -72,8 +74,8 @@ export const verifyOtp = async (req, res) => {
         phone,
         email,
         location,
-        leadStatus,
         company,
+        leadSource,
       });
       await newUser.save();
 

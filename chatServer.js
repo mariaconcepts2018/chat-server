@@ -1,62 +1,61 @@
-import mongoose from 'mongoose';
-import Message from './models/Message.js';
+import mongoose from "mongoose";
+import Message from "./models/Message.js";
 
-export default function chatServer(io){
-    // ✅ Setup Socket.IO with CORS
-const user = {};
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch((err) => console.error('❌ MongoDB error:', err));
+export default function chatServer(io) {
+  // ✅ Setup Socket.IO with CORS
+  const user = {};
+  // MongoDB connection
+  mongoose
+    .connect(process.env.MONGO_URI, { dbName: process.env.DB_NAME_MESSAGE })
+    .then(() => console.log("✅ MongoDB connected"))
+    .catch((err) => console.error("❌ MongoDB error:", err));
 
-// Serve static frontend
+  // Serve static frontend
 
-io.on('connection', async (socket) => {
-  console.log('🟢 New client connected:', socket.id);
+  io.on("connection", async (socket) => {
+    console.log("🟢 New client connected:", socket.id);
 
-  socket.on('register', (userId) =>{
-    user[userId] = socket.id;
-    console.log('User registred', userId)
+    socket.on("register", (userId) => {
+      user[userId] = socket.id;
+      console.log("User registred", userId);
+    });
 
-  })
+    socket.on("adminChat", async (msgData) => {
+      const newMsg = new Message(msgData);
+      await newMsg.save();
+      const targetId = msgData.sessionId;
+      const targetSocket = user[targetId];
+      if (targetSocket) {
+        socket.emit("chatMessage", msgData);
+        io.to(targetSocket).emit("messageFromAdmin", msgData);
+      }
+    });
 
-    socket.on('adminChat', async ( msgData) =>{
-          const newMsg = new Message(msgData);
-    await newMsg.save();
-    const targetId = msgData.sessionId;
-    const targetSocket = user[targetId];
-    if(targetSocket){
-      socket.emit('chatMessage', msgData);
-      io.to(targetSocket).emit('messageFromAdmin', msgData)
-    }
+    // Send recent messages to client
 
-  })
+    socket.on("loadUserMessages", async (userName) => {
+      const messages = await Message.find({ sessionId: userName })
+        .sort({ createdAt: -1 })
+        .limit(50);
 
+      socket.emit("chatHistory", messages);
+    });
 
-  // Send recent messages to client
-  
-  socket.on('loadUserMessages', async (userName)=>{
-    const messages = await Message.find({sessionId : userName}).sort({ createdAt: -1 }).limit(50);
-
-    socket.emit('chatHistory', messages);
-  })
-
-  // Listen for new messages
-  socket.on('chatMessage', async (msgData) => {
-    const newMsg = new Message(msgData);
-    await newMsg.save();
-    socket.emit('chatMessage', newMsg);
-    io.emit("newMessageForAdmin", newMsg);
-  });
+    // Listen for new messages
+    socket.on("chatMessage", async (msgData) => {
+      const newMsg = new Message(msgData);
+      await newMsg.save();
+      socket.emit("chatMessage", newMsg);
+      io.emit("newMessageForAdmin", newMsg);
+    });
 
     socket.on("loadAllChats", async () => {
-    const allMsgs = await Message.find().sort({ createdAt: -1 });
-    socket.emit("allChats", allMsgs);
-  });
+      const allMsgs = await Message.find().sort({ createdAt: -1 });
+      socket.emit("allChats", allMsgs);
+    });
 
-  socket.on('disconnect', () => {
-    console.log('🔴 Client disconnected:', socket.id);
+    socket.on("disconnect", () => {
+      console.log("🔴 Client disconnected:", socket.id);
+    });
   });
-});
-
 }
