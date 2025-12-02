@@ -4,12 +4,6 @@ import Message from "./models/Message.js";
 export default function chatServer(io) {
   // ✅ Setup Socket.IO with CORS
   const user = {};
-  // MongoDB connection
-  mongoose
-    .connect(process.env.MONGO_URI, { dbName: process.env.DB_NAME_MESSAGE })
-    .then(() => console.log("✅ MongoDB connected"))
-    .catch((err) => console.error("❌ MongoDB error:", err));
-
   // Serve static frontend
 
   io.on("connection", async (socket) => {
