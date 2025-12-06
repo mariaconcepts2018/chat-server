@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import Message from "./models/Message.js";
 
 export default function chatServer(io) {

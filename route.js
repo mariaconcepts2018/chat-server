@@ -49,9 +49,6 @@ export const verifyOtp = async (req, res) => {
   try {
     const { name, phone, code, email, location, company, leadSource } =
       req.body;
-
-    console.log(phone);
-
     if (!phone || !code)
       return res.status(400).json({ message: "Phone and code are required" });
 
@@ -59,7 +56,7 @@ export const verifyOtp = async (req, res) => {
       .services(
         company === "mariaconcepts"
           ? process.env.TWILIO_SERVICE_SID_1
-          : process.env.TWILIO_SERVICE_SID_1 //TWILIO_SERVICE_SID_2
+          : process.env.TWILIO_SERVICE_SID_2 //TWILIO_SERVICE_SID_2
       )
       .verificationChecks.create({ to: `+91${phone}`, code });
 
@@ -123,6 +120,54 @@ export const fetchUsers = async (req, res) => {
       name: 1,
       createdAt: 1,
       leadSource: 1,
+      projectType: 1,
+      service: 1,
+      leadStatus: 1,
+      modifiedBy: 1,
+      modifiedOn: 1,
+      company: 1,
+    }).sort({ createdAt: -1 });
+
+    res.json({ count: users.length, users });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const fetchUsersXlsx = async (req, res) => {
+  try {
+    const {
+      id,
+      name,
+      createdAt,
+      leadSource,
+      company,
+      projectType,
+      service,
+      leadStatus,
+    } = req.query;
+
+    // Build dynamic filter object
+    const filter = {};
+
+    if (name) filter.name = new RegExp(name, "i"); // case-insensitive match
+    if (id) filter._id = id;
+    if (createdAt) filter.createdAt = createdAt;
+    if (leadSource) filter.leadSource = leadSource;
+    if (projectType) filter.projectType = projectType;
+    if (service) filter.service = service;
+    if (leadStatus) filter.leadStatus = leadStatus;
+    if (company) filter.company = company;
+
+    const users = await User.find(filter, {
+      _id: 1,
+      name: 1,
+      phone: 1,
+      email: 1,
+      createdAt: 1,
+      leadSource: 1,
+      appointmentDate: 1,
       projectType: 1,
       service: 1,
       leadStatus: 1,

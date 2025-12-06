@@ -9,6 +9,7 @@ import {
   fetchCounts,
   fetchUser,
   fetchUsers,
+  fetchUsersXlsx,
   sendOtp,
   updateUser,
   updateUserAdmin,
@@ -66,6 +67,7 @@ app.post("/api/verify-otp", verifyOtp);
 app.post("/api/update-user", updateUser);
 
 app.get("/api/admin/users", fetchUsers);
+app.get("/api/admin/users-xlsx", fetchUsersXlsx);
 app.get("/api/admin/users/:userId", fetchUser);
 app.get("/api/admin/users-count", fetchCounts);
 app.post("/api/admin/update-user/:userId", updateUserAdmin);
