@@ -20,4 +20,6 @@ const UserSchema = new mongoose.Schema({
   modifiedOn: { type: Date },
 });
 
+UserSchema.index({ company: 1, phone: 1 }, { unique: true });
+
 export default mongoose.models.UserSchema || mongoose.model("User", UserSchema);
