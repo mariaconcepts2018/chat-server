@@ -12,9 +12,10 @@ const client = twilio(
 
 export const updateUser = async (req, res) => {
   try {
-    const { name, email, location, phone, ...filterdObject } = req.body;
+    const { name, email, location, phone, company, ...filterdObject } =
+      req.body;
 
-    await User.findOneAndUpdate({ phone }, filterdObject);
+    await User.findOneAndUpdate({ phone, company }, filterdObject);
 
     res.status(201).json({ message: "User updated successfully" });
   } catch (error) {
