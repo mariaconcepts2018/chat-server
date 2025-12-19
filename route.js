@@ -3,6 +3,8 @@ import twilio from "twilio";
 import dotenv from "dotenv";
 import XLSX from "xlsx";
 
+const LIMIT = 10;
+
 dotenv.config();
 
 const client = twilio(
@@ -102,6 +104,7 @@ export const fetchUsers = async (req, res) => {
       projectType,
       service,
       leadStatus,
+      nextCursor,
     } = req.query;
 
     // Build dynamic filter object
@@ -115,6 +118,7 @@ export const fetchUsers = async (req, res) => {
     if (service) filter.service = service;
     if (leadStatus) filter.leadStatus = leadStatus;
     if (company) filter.company = company;
+    if (nextCursor) filter._id = { $lt: nextCursor };
 
     const users = await User.find(filter, {
       _id: 1,
@@ -127,9 +131,19 @@ export const fetchUsers = async (req, res) => {
       modifiedBy: 1,
       modifiedOn: 1,
       company: 1,
-    }).sort({ createdAt: -1 });
+    })
+      .sort({ _id: -1 })
+      .limit(LIMIT + 1);
 
-    res.json({ count: users.length, users });
+    const hasNextPage = users.length > LIMIT;
+    if (hasNextPage) users.pop();
+
+    res.json({
+      count: users.length,
+      users,
+      hasNextPage,
+      nextCursor: hasNextPage ? users.at(-1)?._id : null,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -147,6 +161,7 @@ export const fetchUsersXlsx = async (req, res) => {
       projectType,
       service,
       leadStatus,
+      nextCursor,
     } = req.query;
 
     // Build dynamic filter object
@@ -160,6 +175,7 @@ export const fetchUsersXlsx = async (req, res) => {
     if (service) filter.service = service;
     if (leadStatus) filter.leadStatus = leadStatus;
     if (company) filter.company = company;
+    if (nextCursor) filter._id = { $lt: nextCursor };
 
     const users = await User.find(filter, {
       _id: 1,
@@ -175,7 +191,9 @@ export const fetchUsersXlsx = async (req, res) => {
       modifiedBy: 1,
       modifiedOn: 1,
       company: 1,
-    }).sort({ createdAt: -1 });
+    })
+      .sort({ _id: -1 })
+      .limit(LIMIT);
 
     res.json({ count: users.length, users });
   } catch (error) {
