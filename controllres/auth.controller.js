@@ -17,7 +17,8 @@ export const login = async (req, res) => {
     res.cookie("token", data.accessToken, {
       httpOnly: true,
       secure: true,
-      sameSite: "strict",
+      domain: ".mariaconcepts.com",
+      sameSite: "none",
       path: "/",
     });
 
