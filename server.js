@@ -3,7 +3,6 @@ import http from "http";
 import dotenv from "dotenv";
 import cors from "cors";
 import chatServer from "./chatServer.js";
-import path from "path";
 import mongoose from "mongoose";
 import {
   fetchCounts,
@@ -19,6 +18,11 @@ import {
 import { Server } from "socket.io";
 import multer from "multer";
 import twilioWebhook from "./twilioWebhook.js";
+import { register, login, logout } from "./controllres/auth.controller.js";
+import profileRoutes from "./routes/profile.routes.js";
+import { getProfile } from "./controllres/profile.controller.js";
+import { protect } from "./middlewares/auth.middleware.js";
+import cookieParser from "cookie-parser";
 
 const upload = multer({ dest: "uploads/" });
 
@@ -36,6 +40,8 @@ const io = new Server(server, {
   },
 });
 
+app.use(cookieParser());
+
 app.use(
   cors({
     origin: [
@@ -49,8 +55,7 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true }));
 
-const __dirname = path.resolve();
-app.use(express.static(path.join(__dirname, "public")));
+app.use("/api", profileRoutes);
 
 chatServer(io);
 
@@ -66,12 +71,17 @@ app.post("/api/send-otp", sendOtp);
 app.post("/api/verify-otp", verifyOtp);
 app.post("/api/update-user", updateUser);
 
-app.get("/api/admin/users", fetchUsers);
-app.get("/api/admin/users-xlsx", fetchUsersXlsx);
-app.get("/api/admin/users/:userId", fetchUser);
-app.get("/api/admin/users-count", fetchCounts);
-app.post("/api/admin/update-user/:userId", updateUserAdmin);
-app.post("/api/admin/uploadFile", upload.single("file"), uploadFile);
+app.get("/api/admin/users", protect, fetchUsers);
+app.get("/api/admin/users-xlsx", protect, fetchUsersXlsx);
+app.get("/api/admin/users/:userId", protect, fetchUser);
+app.get("/api/admin/users-count", protect, fetchCounts);
+app.post("/api/admin/update-user/:userId", protect, updateUserAdmin);
+app.post("/api/admin/uploadFile", protect, upload.single("file"), uploadFile);
+app.post("/api/auth/logout", protect, logout);
+app.get("/api/profile", protect, getProfile);
+
+app.post("/auth/register", register);
+app.post("/auth/login", login);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () =>
