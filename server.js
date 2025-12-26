@@ -64,6 +64,8 @@ mongoose
   .then(() => console.log("PostUser: MongoDB connected:"))
   .catch((err) => console.error("PostUser: MongoDB connection error:", err));
 
+app.set("trust proxy", 1);
+
 app.post("/whatsapp", twilioWebhook);
 
 // POST route to store user data
