@@ -1,4 +1,5 @@
 import Message from "./models/Message.js";
+import authenticate from "./utils/socketAuth.js";
 
 export default function chatServer(io) {
   // ✅ Setup Socket.IO with CORS
@@ -14,13 +15,18 @@ export default function chatServer(io) {
     });
 
     socket.on("adminChat", async (msgData) => {
-      const newMsg = new Message(msgData);
-      await newMsg.save();
-      const targetId = msgData.sessionId;
-      const targetSocket = user[targetId];
-      if (targetSocket) {
-        socket.emit("chatMessage", msgData);
-        io.to(targetSocket).emit("messageFromAdmin", msgData);
+      try {
+        const admin = authenticate(socket);
+        const newMsg = new Message({ ...msgData, admin: admin.name });
+        await newMsg.save();
+        const targetId = msgData.sessionId;
+        const targetSocket = user[targetId];
+        if (targetSocket) {
+          socket.emit("chatMessage", msgData);
+          io.to(targetSocket).emit("messageFromAdmin", msgData);
+        }
+      } catch (error) {
+        socket.emit("error", "Unauthorized");
       }
     });
 
@@ -43,8 +49,13 @@ export default function chatServer(io) {
     });
 
     socket.on("loadAllChats", async () => {
-      const allMsgs = await Message.find().sort({ createdAt: -1 });
-      socket.emit("allChats", allMsgs);
+      try {
+        const admin = authenticate(socket);
+        const allMsgs = await Message.find().sort({ createdAt: -1 });
+        socket.emit("allChats", allMsgs);
+      } catch (error) {
+        socket.emit("error", "Unauthorized");
+      }
     });
 
     socket.on("disconnect", () => {

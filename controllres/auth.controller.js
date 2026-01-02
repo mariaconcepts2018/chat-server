@@ -35,6 +35,7 @@ export const login = async (req, res) => {
 
     res.json({
       message: "Login successful",
+      token: data.accessToken,
       user: {
         name: data.admin.name,
         email: data.admin.email,
