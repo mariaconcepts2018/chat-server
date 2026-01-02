@@ -14,15 +14,32 @@ export const login = async (req, res) => {
   try {
     const data = await AuthService.loginAdmin(req.body);
 
-    res.cookie("token", data.accessToken, {
-      httpOnly: true,
-      secure: true,
-      domain: ".mariaconcepts.com",
-      sameSite: "none",
-      path: "/",
-    });
+    res.cookie(
+      "token",
+      data.accessToken,
+      process.env.production === "false"
+        ? {
+            // httpOnly: true,
+            secure: false,
+            sameSite: "Lax",
+            path: "/",
+          }
+        : {
+            httpOnly: true,
+            secure: true,
+            domain: ".mariaconcepts.com",
+            sameSite: "none",
+            path: "/",
+          }
+    );
 
-    res.json({ message: "Login successful" });
+    res.json({
+      message: "Login successful",
+      user: {
+        name: data.admin.name,
+        email: data.admin.email,
+      },
+    });
 
     // res.json(data);
   } catch (err) {
@@ -32,7 +49,23 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("token", { path: "/" });
+    res.clearCookie(
+      "token",
+      process.env.production === "false"
+        ? {
+            // httpOnly: true,
+            secure: false,
+            sameSite: "Lax",
+            path: "/",
+          }
+        : {
+            httpOnly: true,
+            secure: true,
+            domain: ".mariaconcepts.com",
+            sameSite: "none",
+            path: "/",
+          }
+    );
     res.json({ message: "Logged out" });
   } catch (err) {
     res.status(401).json({ error: err.message });
