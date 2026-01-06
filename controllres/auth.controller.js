@@ -1,6 +1,8 @@
 // controllers/auth.controller.js
 import * as AuthService from "../services/auth.service.js";
 
+const maxAgeInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+
 export const register = async (req, res) => {
   try {
     const user = await AuthService.registerAdmin(req.body);
@@ -30,6 +32,7 @@ export const login = async (req, res) => {
             domain: ".mariaconcepts.com",
             sameSite: "none",
             path: "/",
+            maxAge: maxAgeInMilliseconds,
           }
     );
 
@@ -65,6 +68,7 @@ export const logout = async (req, res) => {
             domain: ".mariaconcepts.com",
             sameSite: "none",
             path: "/",
+            maxAge: maxAgeInMilliseconds,
           }
     );
     res.json({ message: "Logged out" });

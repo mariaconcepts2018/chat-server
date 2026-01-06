@@ -20,7 +20,7 @@ export default async function twilioWebhook(req, res) {
       user.step = "name";
       return reply(
         res,
-        "👋 Hi! Let's get your details.\n\nWhat is your *Name*?"
+        "Hello! Welcome to Maria Concepts.\n\nTo get started, may we know your name, please?"
       );
 
     case "name":
@@ -28,11 +28,11 @@ export default async function twilioWebhook(req, res) {
       user.step = "email";
       return reply(
         res,
-        `Nice to meet you *${user.name}*! 😊\nPlease enter your *Email*:`
+        `Nice to meet you *${user.name}*! \nPlease select your project type:`
       );
 
-    case "email":
-      user.email = incomingMsg;
+    case "projectType":
+      user.projectType = incomingMsg;
       user.step = "location";
       return reply(res, "Great! Now please type your *Location*:");
 
