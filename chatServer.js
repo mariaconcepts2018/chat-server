@@ -19,14 +19,15 @@ export default function chatServer(io) {
         const admin = authenticate(socket);
         const newMsg = new Message({ ...msgData, admin: admin.name });
         await newMsg.save();
-        const targetId = msgData.sessionId;
-        const targetSocket = user[targetId];
-        if (targetSocket) {
-          socket.emit("chatMessage", msgData);
-          io.to(targetSocket).emit("messageFromAdmin", msgData);
-        }
       } catch (error) {
         socket.emit("error", "Unauthorized");
+      }
+
+      const targetId = msgData.sessionId;
+      const targetSocket = user[targetId];
+      if (targetSocket) {
+        socket.emit("chatMessage", msgData);
+        io.to(targetSocket).emit("messageFromAdmin", msgData);
       }
     });
 

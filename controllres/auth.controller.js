@@ -25,6 +25,7 @@ export const login = async (req, res) => {
             secure: false,
             sameSite: "Lax",
             path: "/",
+            maxAge: maxAgeInMilliseconds,
           }
         : {
             httpOnly: true,
@@ -61,6 +62,7 @@ export const logout = async (req, res) => {
             secure: false,
             sameSite: "Lax",
             path: "/",
+            maxAge: maxAgeInMilliseconds,
           }
         : {
             httpOnly: true,

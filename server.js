@@ -5,6 +5,7 @@ import cors from "cors";
 import chatServer from "./chatServer.js";
 import mongoose from "mongoose";
 import {
+  addLead,
   fetchCounts,
   fetchUser,
   fetchUsers,
@@ -72,6 +73,7 @@ app.post("/whatsapp", twilioWebhook);
 app.post("/api/send-otp", sendOtp);
 app.post("/api/verify-otp", verifyOtp);
 app.post("/api/update-user", updateUser);
+app.post("/api/add-lead", addLead);
 
 app.get("/api/admin/users", protect, fetchUsers);
 app.get("/api/admin/users-xlsx", protect, fetchUsersXlsx);

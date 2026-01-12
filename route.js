@@ -26,6 +26,24 @@ export const updateUser = async (req, res) => {
   }
 };
 
+export const addLead = async (req, res) => {
+  try {
+    const form = req.body;
+    console.log(form);
+    if (!form.name || !form.phone || !form.email || !form.company) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const newUser = new User({ ...form, leadSource: "offline" });
+    await newUser.save();
+
+    res.status(201).json({ message: "User saved successfully", user: newUser });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Upload failed", error: err.message });
+  }
+};
+
 export const sendOtp = async (req, res) => {
   try {
     const { phone, company } = req.body;
