@@ -73,8 +73,8 @@ app.post("/whatsapp", twilioWebhook);
 app.post("/api/send-otp", sendOtp);
 app.post("/api/verify-otp", verifyOtp);
 app.post("/api/update-user", updateUser);
-app.post("/api/add-lead", addLead);
 
+app.post("/api/admin/add-lead", protect, addLead);
 app.get("/api/admin/users", protect, fetchUsers);
 app.get("/api/admin/users-xlsx", protect, fetchUsersXlsx);
 app.get("/api/admin/users/:userId", protect, fetchUser);
