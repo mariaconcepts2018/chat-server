@@ -1,10 +1,14 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const MessageSchema = new mongoose.Schema({
-  sessionId: { type: String, required: true },
-  text: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-  isAdmin: { type: Boolean, default: false }
-});
+const MessageSchema = new mongoose.Schema(
+  {
+    roomId: String,
+    sender: String,
+    message: String,
+    isReadByAdmin: { type: Boolean, default: false },
+  },
+  { timestamps: true },
+);
 
-export default mongoose.models.Message || mongoose.model('Message', MessageSchema);
+export default mongoose.models.Message ||
+  mongoose.model("Message", MessageSchema);

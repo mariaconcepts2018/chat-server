@@ -4,10 +4,15 @@ import dotenv from "dotenv";
 import cors from "cors";
 import chatServer from "./chatServer.js";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
+
 import {
   addLead,
+  fetchChats,
   fetchCounts,
+  fetchPrevChats,
   fetchUser,
+  fetchUserChats,
   fetchUsers,
   fetchUsersXlsx,
   sendOtp,
@@ -20,7 +25,7 @@ import { Server } from "socket.io";
 import multer from "multer";
 import twilioWebhook from "./twilioWebhook.js";
 import { register, login, logout } from "./controllres/auth.controller.js";
-import profileRoutes from "./routes/profile.routes.js";
+// import profileRoutes from "./routes/profile.routes.js";
 import { getProfile } from "./controllres/profile.controller.js";
 import { protect } from "./middlewares/auth.middleware.js";
 import cookieParser from "cookie-parser";
@@ -52,11 +57,25 @@ app.use(
     ], // Next.js dev URL
     methods: ["GET", "POST"],
     credentials: true,
-  })
+  }),
 );
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api", profileRoutes);
+// app.use("/api", profileRoutes);
+
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+
+  if (!token) return next(); // allow public users
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    socket.admin = decoded;
+    next();
+  } catch {
+    next(new Error("Unauthorized"));
+  }
+});
 
 chatServer(io);
 
@@ -73,6 +92,7 @@ app.post("/whatsapp", twilioWebhook);
 app.post("/api/send-otp", sendOtp);
 app.post("/api/verify-otp", verifyOtp);
 app.post("/api/update-user", updateUser);
+app.get("/api/chat/:roomId/messages", fetchUserChats);
 
 app.post("/api/admin/add-lead", protect, addLead);
 app.get("/api/admin/users", protect, fetchUsers);
@@ -83,11 +103,13 @@ app.post("/api/admin/update-user/:userId", protect, updateUserAdmin);
 app.post("/api/admin/uploadFile", protect, upload.single("file"), uploadFile);
 app.post("/api/auth/logout", protect, logout);
 app.get("/api/profile", protect, getProfile);
+app.get("/api/admin/unread-chats", protect, fetchChats);
+app.get("/api/admin/chat/:roomId/messages", protect, fetchPrevChats);
 
 app.post("/auth/register", register);
 app.post("/auth/login", login);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () =>
-  console.log(`Server running on http://localhost:${PORT}`)
+  console.log(`Server running on http://localhost:${PORT}`),
 );

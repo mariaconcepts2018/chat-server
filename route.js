@@ -2,6 +2,8 @@ import User from "./models/User.js";
 import twilio from "twilio";
 import dotenv from "dotenv";
 import XLSX from "xlsx";
+import ChatRoom from "./models/ChatRoom.js";
+import Message from "./models/Message.js";
 
 const LIMIT = 10;
 
@@ -9,7 +11,7 @@ dotenv.config();
 
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
+  process.env.TWILIO_AUTH_TOKEN,
 );
 
 export const updateUser = async (req, res) => {
@@ -29,7 +31,6 @@ export const updateUser = async (req, res) => {
 export const addLead = async (req, res) => {
   try {
     const form = req.body;
-    console.log(form);
     if (!form.name || !form.phone || !form.email || !form.company) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -55,7 +56,7 @@ export const sendOtp = async (req, res) => {
       .services(
         company === "mariaconcepts"
           ? process.env.TWILIO_SERVICE_SID_1
-          : process.env.TWILIO_SERVICE_SID_2
+          : process.env.TWILIO_SERVICE_SID_2,
       )
       .verifications.create({ to: `+91${phone}`, channel: "sms" });
 
@@ -77,7 +78,7 @@ export const verifyOtp = async (req, res) => {
       .services(
         company === "mariaconcepts"
           ? process.env.TWILIO_SERVICE_SID_1
-          : process.env.TWILIO_SERVICE_SID_2 //TWILIO_SERVICE_SID_2
+          : process.env.TWILIO_SERVICE_SID_2, //TWILIO_SERVICE_SID_2
       )
       .verificationChecks.create({ to: `+91${phone}`, code });
 
@@ -319,4 +320,30 @@ export const uploadFile = async (req, res) => {
     console.error(err);
     res.status(500).json({ error: err.message });
   }
+};
+
+export const fetchChats = async (req, res) => {
+  const chats = await ChatRoom.find({
+    // unreadCountForAdmin: { $gt: 0 },
+  }).sort({ createdAt: 1 });
+  res.json(chats);
+};
+
+export const fetchPrevChats = async (req, res) => {
+  const { roomId } = req.params;
+
+  const messages = await Message.find({ roomId })
+    .sort({ createdAt: 1 }) // oldest → newest
+    .limit(50);
+  res.json(messages);
+};
+
+export const fetchUserChats = async (req, res) => {
+  const messages = await Message.find({
+    roomId: req.params.roomId,
+  })
+    .sort({ createdAt: 1 })
+    .limit(100);
+
+  res.json(messages);
 };
