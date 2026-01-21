@@ -100,6 +100,7 @@ export default function chatServer(io) {
       io.emit("admin:chat:notify", {
         roomId,
         message: message,
+        lastMessage: message,
         sender: "admin",
       });
     });

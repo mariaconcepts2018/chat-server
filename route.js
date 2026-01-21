@@ -307,6 +307,9 @@ export const uploadFile = async (req, res) => {
       return data;
     });
 
+    if (formattedData.length === 0)
+      return res.status(400).json({ error: "No data found!" });
+
     const data = formattedData.map((item) => ({
       ...item,
       leadSource: "offline",
@@ -325,7 +328,7 @@ export const uploadFile = async (req, res) => {
 export const fetchChats = async (req, res) => {
   const chats = await ChatRoom.find({
     // unreadCountForAdmin: { $gt: 0 },
-  }).sort({ createdAt: 1 });
+  }).sort({ createdAt: -1 });
   res.json(chats);
 };
 
@@ -333,7 +336,7 @@ export const fetchPrevChats = async (req, res) => {
   const { roomId } = req.params;
 
   const messages = await Message.find({ roomId })
-    .sort({ createdAt: 1 }) // oldest → newest
+    .sort({ createdAt: -1 }) //  newest -> oldest
     .limit(50);
   res.json(messages);
 };
@@ -342,8 +345,8 @@ export const fetchUserChats = async (req, res) => {
   const messages = await Message.find({
     roomId: req.params.roomId,
   })
-    .sort({ createdAt: 1 })
-    .limit(100);
+    .sort({ createdAt: -1 })
+    .limit(50);
 
   res.json(messages);
 };
