@@ -34,13 +34,14 @@ export const login = async (req, res) => {
             sameSite: "none",
             path: "/",
             maxAge: maxAgeInMilliseconds,
-          }
+          },
     );
 
     res.json({
       message: "Login successful",
       token: data.accessToken,
       user: {
+        id: data.admin._id,
         name: data.admin.name,
         email: data.admin.email,
       },
@@ -71,7 +72,7 @@ export const logout = async (req, res) => {
             sameSite: "none",
             path: "/",
             maxAge: maxAgeInMilliseconds,
-          }
+          },
     );
     res.json({ message: "Logged out" });
   } catch (err) {

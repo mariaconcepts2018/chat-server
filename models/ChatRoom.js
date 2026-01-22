@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const ChatRoomSchema = new mongoose.Schema(
   {
     visitorId: { type: String, unique: true },
-    assignedadminId: String,
+    assignedAdminId: String,
     lastMessage: String,
     unreadCountForAdmin: { type: Number, default: 0 },
   },

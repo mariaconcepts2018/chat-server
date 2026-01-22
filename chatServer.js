@@ -7,7 +7,12 @@ export default function chatServer(io) {
   // Serve static frontend
   const joinedAdmins = new Map();
 
+  const allAdminSockets = new Set();
+
   io.on("connection", async (socket) => {
+    if (socket.admin) {
+      allAdminSockets.add(socket.id);
+    }
     socket.on("visitor:join", async ({ visitorId }) => {
       try {
         let room = await ChatRoom.findOne({ visitorId });
@@ -25,45 +30,55 @@ export default function chatServer(io) {
     socket.on("visitor:message", async ({ roomId, message }) => {
       const msg = await Message.create({ roomId, sender: "visitor", message });
 
-      const hasJoinedAdmins = joinedAdmins.get(roomId)?.size > 0;
       // 🔹 Send chat message ONLY to joined admins
       // if (hasJoinedAdmins) {
       io.to(roomId).emit("message:new", msg);
       // }
+
       const room = await ChatRoom.findByIdAndUpdate(
         roomId,
-        hasJoinedAdmins
-          ? { $set: { lastMessage: message } }
-          : {
-              $inc: { unreadCountForAdmin: 1 },
-              $set: { lastMessage: message },
-            },
+        {
+          $inc: { unreadCountForAdmin: 1 },
+          $set: { lastMessage: message },
+        },
         { new: true },
       );
 
-      io.emit("admin:chat:notify", {
-        roomId,
-        lastMessage: message,
-        sender: "visitor",
-        visitorId: room.visitorId,
-        unreadCountForAdmin: room.unreadCountForAdmin,
-      });
+      if (room.assignedAdminId) {
+        joinedAdmins.get(roomId)?.forEach((adminSocketId) => {
+          io.to(adminSocketId).emit("admin:chat:notify", {
+            roomId,
+            lastMessage: message,
+            sender: "visitor",
+            visitorId: room.visitorId,
+            unreadCountForAdmin: room.unreadCountForAdmin,
+          });
+        });
+      } else {
+        // 4️⃣ Notify ALL admins (chat list / badge)
+        allAdminSockets.forEach((adminSocketId) => {
+          io.to(adminSocketId).emit("admin:chat:newMessage", {
+            roomId,
+            visitorId: room.visitorId,
+            lastMessage: message,
+          });
+        });
+      }
     });
 
     /* ADMIN */
-    socket.on("admin:joinRoom", async ({ roomId }) => {
+    socket.on("admin:joinRoom", async ({ roomId, socketId }) => {
       if (!socket.admin) return;
       socket.join(roomId);
-
       const rid = String(roomId);
 
       if (!joinedAdmins.has(rid)) {
         joinedAdmins.set(rid, new Set());
       }
-      joinedAdmins.get(rid).add(socket.admin.id);
+      joinedAdmins.get(rid).add(socketId);
 
       await ChatRoom.findByIdAndUpdate(roomId, {
-        unreadCountForAdmin: 0,
+        // unreadCountForAdmin: 0,
         assignedAdminId: socket.admin.id,
       });
 
@@ -72,36 +87,44 @@ export default function chatServer(io) {
       });
     });
 
-    socket.on("admin:leaveRoom", ({ roomId }) => {
+    socket.on("admin:leaveRoom", ({ roomId, socketId }) => {
       if (!socket.admin) return;
 
       socket.leave(roomId);
-      joinedAdmins.get(roomId)?.delete(socket.id);
+      joinedAdmins.get(roomId)?.delete(socketId);
 
       socket.to(roomId).emit("admin:left", {
         adminName: socket.admin.name,
       });
     });
 
-    socket.on("admin:message", async ({ roomId, message }) => {
+    socket.on("admin:message", async ({ roomId, socketId, message }) => {
       if (!socket.admin) return;
 
       const rid = String(roomId);
-      if (!joinedAdmins.get(rid)?.has(socket.admin.id)) return;
 
-      const msg = await Message.create({ roomId, sender: "admin", message });
+      if (!joinedAdmins.get(rid)?.has(socketId)) return;
+
+      const msg = await Message.create({
+        roomId,
+        sender: socket.admin.name,
+        message,
+      });
 
       io.to(roomId).emit("message:new", msg);
 
-      await ChatRoom.findByIdAndUpdate(roomId, {
+      const room = await ChatRoom.findByIdAndUpdate(roomId, {
+        unreadCountForAdmin: 0,
         $set: { lastMessage: message },
       });
 
       io.emit("admin:chat:notify", {
         roomId,
         message: message,
+        visitorId: room.visitorId,
         lastMessage: message,
-        sender: "admin",
+        sender: socket.admin.name,
+        unreadCountForAdmin: 0,
       });
     });
 
@@ -114,11 +137,9 @@ export default function chatServer(io) {
     });
 
     socket.on("disconnect", () => {
-      for (const [roomId, admins] of joinedAdmins) {
+      allAdminSockets.delete(socket.id);
+      for (const admins of joinedAdmins.values()) {
         admins.delete(socket.id);
-        if (admins.size === 0) {
-          joinedAdmins.delete(roomId);
-        }
       }
     });
   });
