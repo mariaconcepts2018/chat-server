@@ -20,9 +20,15 @@ export const loginAdmin = async ({ email, password }) => {
   const isMatch = await comparePassword(password, admin.password);
   if (!isMatch) throw new Error("Invalid credentials");
 
+  const refreshToken = generateRefreshToken(admin);
+
+  admin.refreshToken = refreshToken;
+
+  await admin.save();
+
   return {
     admin,
     accessToken: generateAccessToken(admin),
-    refreshToken: generateRefreshToken(admin),
+    refreshToken: refreshToken,
   };
 };

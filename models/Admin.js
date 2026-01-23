@@ -7,8 +7,9 @@ const adminSchema = new mongoose.Schema(
     email: { type: String, unique: true, lowercase: true },
     password: { type: String, required: true },
     role: { type: String, default: "admin" },
+    refreshToken: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Admin", adminSchema);

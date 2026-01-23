@@ -24,7 +24,12 @@ import {
 import { Server } from "socket.io";
 import multer from "multer";
 import twilioWebhook from "./twilioWebhook.js";
-import { register, login, logout } from "./controllres/auth.controller.js";
+import {
+  register,
+  login,
+  logout,
+  refresh,
+} from "./controllres/auth.controller.js";
 // import profileRoutes from "./routes/profile.routes.js";
 import { getProfile } from "./controllres/profile.controller.js";
 import { protect } from "./middlewares/auth.middleware.js";
@@ -46,6 +51,8 @@ const io = new Server(server, {
   },
 });
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use(
@@ -59,12 +66,13 @@ app.use(
     credentials: true,
   }),
 );
-app.use(express.urlencoded({ extended: true }));
 
 // app.use("/api", profileRoutes);
 
 io.use((socket, next) => {
-  const token = socket.handshake.auth?.token;
+  const token =
+    socket.handshake.auth?.token ||
+    socket.handshake.headers?.authorization?.split(" ")[1];
 
   if (!token) return next(); // allow public users
 
@@ -108,6 +116,7 @@ app.get("/api/admin/chat/:roomId/messages", protect, fetchPrevChats);
 
 app.post("/auth/register", register);
 app.post("/auth/login", login);
+app.post("/auth/refresh", refresh);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () =>

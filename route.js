@@ -328,7 +328,9 @@ export const uploadFile = async (req, res) => {
 export const fetchChats = async (req, res) => {
   const chats = await ChatRoom.find({
     // unreadCountForAdmin: { $gt: 0 },
-  }).sort({ createdAt: 1 });
+  })
+    .sort({ createdAt: 1 })
+    .limit(50);
   res.json(chats);
 };
 
