@@ -35,7 +35,11 @@ export const addLead = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const newUser = new User({ ...form, leadSource: "offline" });
+    const newUser = new User({
+      ...form,
+      leadSource: "offline",
+      uploadedBy: req.user.name,
+    });
     await newUser.save();
 
     res.status(201).json({ message: "User saved successfully", user: newUser });
@@ -147,6 +151,7 @@ export const fetchUsers = async (req, res) => {
       projectType: 1,
       service: 1,
       leadStatus: 1,
+      uploadedBy: 1,
       modifiedBy: 1,
       modifiedOn: 1,
       company: 1,
@@ -250,13 +255,13 @@ export const updateUserAdmin = async (req, res) => {
   try {
     const userId = req.params.userId;
 
-    const { leadStatus, appointmentDate, notes, modifiedBy } = req.body;
+    const { leadStatus, appointmentDate, notes } = req.body;
 
     const user = await User.findByIdAndUpdate(userId, {
       leadStatus: leadStatus,
       appointmentDate: appointmentDate,
       notes: notes,
-      modifiedBy: modifiedBy,
+      modifiedBy: req.user.name,
       modifiedOn: Date.now(),
     });
 
@@ -313,6 +318,7 @@ export const uploadFile = async (req, res) => {
     const data = formattedData.map((item) => ({
       ...item,
       leadSource: "offline",
+      uploadedBy: req.user.name,
     }));
 
     // Insert all rows

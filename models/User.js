@@ -18,6 +18,7 @@ const UserSchema = new mongoose.Schema({
   notes: { type: String },
   modifiedBy: { type: String },
   modifiedOn: { type: Date },
+  uploadedBy: { type: String, default: "user" },
 });
 
 UserSchema.index({ company: 1, phone: 1 }, { unique: true });

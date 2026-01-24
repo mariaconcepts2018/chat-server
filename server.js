@@ -89,8 +89,8 @@ chatServer(io);
 
 mongoose
   .connect(process.env.MONGO_URI, { dbName: process.env.DB_NAME })
-  .then(() => console.log("PostUser: MongoDB connected:"))
-  .catch((err) => console.error("PostUser: MongoDB connection error:", err));
+  .then(() => console.log("MongoDB connected:"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
 app.set("trust proxy", 1);
 

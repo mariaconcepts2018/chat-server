@@ -6,6 +6,7 @@ import { generateAccessToken, generateRefreshToken } from "../utils/jwt.js";
 export const registerAdmin = async ({ name, email, password }) => {
   const exists = await Admin.findOne({ email });
   if (exists) throw new Error("Admin already exists");
+  if (name === "user" || name === "admin") throw new Error("Invalid Name");
 
   const hashed = await hashPassword(password);
   const admin = await Admin.create({ name, email, password: hashed });
