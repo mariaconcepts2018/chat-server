@@ -28,41 +28,48 @@ export default function chatServer(io) {
     // Send recent messages to client
 
     socket.on("visitor:message", async ({ roomId, message }) => {
-      const msg = await Message.create({ roomId, sender: "visitor", message });
+      if (message && message.length >= 8) {
+        const roomOld = await ChatRoom.findById(roomId);
 
-      // 🔹 Send chat message ONLY to joined admins
-      // if (hasJoinedAdmins) {
-      io.to(roomId).emit("message:new", msg);
-      // }
-
-      const room = await ChatRoom.findByIdAndUpdate(
-        roomId,
-        {
-          $inc: { unreadCountForAdmin: 1 },
-          $set: { lastMessage: message },
-        },
-        { new: true },
-      );
-
-      if (room.assignedAdminId) {
-        joinedAdmins.get(roomId)?.forEach((adminSocketId) => {
-          io.to(adminSocketId).emit("admin:chat:notify", {
+        if (roomOld.unreadCountForAdmin < 3) {
+          const room = await ChatRoom.findByIdAndUpdate(
             roomId,
-            lastMessage: message,
+            {
+              $inc: { unreadCountForAdmin: 1 },
+              $set: { lastMessage: message },
+            },
+            { new: true },
+          );
+          const msg = await Message.create({
+            roomId,
             sender: "visitor",
-            visitorId: room.visitorId,
-            unreadCountForAdmin: room.unreadCountForAdmin,
+            message,
           });
-        });
-      } else {
-        // 4️⃣ Notify ALL admins (chat list / badge)
-        allAdminSockets.forEach((adminSocketId) => {
-          io.to(adminSocketId).emit("admin:chat:newMessage", {
-            roomId,
-            visitorId: room.visitorId,
-            lastMessage: message,
-          });
-        });
+
+          io.to(roomId).emit("message:new", msg);
+
+          if (room.assignedAdminId) {
+            joinedAdmins.get(roomId)?.forEach((adminSocketId) => {
+              io.to(adminSocketId).emit("admin:chat:notify", {
+                roomId,
+                lastMessage: message,
+                sender: "visitor",
+                visitorId: room.visitorId,
+                unreadCountForAdmin: room.unreadCountForAdmin,
+              });
+            });
+          } else {
+            // 4️⃣ Notify ALL admins (chat list / badge)
+            allAdminSockets.forEach((adminSocketId) => {
+              io.to(adminSocketId).emit("admin:chat:newMessage", {
+                roomId,
+                visitorId: room.visitorId,
+                lastMessage: message,
+                unreadCountForAdmin: room.unreadCountForAdmin,
+              });
+            });
+          }
+        }
       }
     });
 
