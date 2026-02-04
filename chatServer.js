@@ -73,6 +73,19 @@ export default function chatServer(io) {
       }
     });
 
+    socket.on("visitor:left", async ({ visitorId }) => {
+      try {
+        await ChatRoom.findOneAndUpdate(
+          { visitorId },
+          {
+            visitorOnline: false,
+          },
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
     /* ADMIN */
     socket.on("admin:joinRoom", async ({ roomId, socketId }) => {
       if (!socket.admin) return;

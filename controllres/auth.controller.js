@@ -57,6 +57,8 @@ export const login = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+
   try {
     if (refreshToken) {
       await Admin.findOneAndUpdate({ refreshToken }, { refreshToken: null });
@@ -81,7 +83,7 @@ export const logout = async (req, res) => {
             maxAge: maxAgeInMilliseconds,
           },
     );
-    res.json({ message: "Logged out" });
+    res.status(204).json({ message: "Logged out" });
   } catch (err) {
     res.status(401).json({ error: err.message });
   }
@@ -89,7 +91,6 @@ export const logout = async (req, res) => {
 
 export const refresh = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
-
   if (!refreshToken) return res.sendStatus(401);
 
   const admin = await Admin.findOne({ refreshToken });

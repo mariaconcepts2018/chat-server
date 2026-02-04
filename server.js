@@ -109,11 +109,11 @@ app.get("/api/admin/users/:userId", protect, fetchUser);
 app.get("/api/admin/users-count", protect, fetchCounts);
 app.post("/api/admin/update-user/:userId", protect, updateUserAdmin);
 app.post("/api/admin/uploadFile", protect, upload.single("file"), uploadFile);
-app.post("/api/auth/logout", protect, logout);
-app.get("/api/profile", protect, getProfile);
 app.get("/api/admin/unread-chats", protect, fetchChats);
 app.get("/api/admin/chat/:roomId/messages", protect, fetchPrevChats);
+app.get("/api/profile", protect, getProfile); //need to be changed
 
+app.post("/auth/logout", logout);
 app.post("/auth/register", register);
 app.post("/auth/login", login);
 app.post("/auth/refresh", refresh);

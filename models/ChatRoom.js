@@ -5,6 +5,7 @@ const ChatRoomSchema = new mongoose.Schema(
     visitorId: { type: String, unique: true },
     assignedAdminId: String,
     lastMessage: String,
+    visitorOnline: { type: Boolean, default: true },
     unreadCountForAdmin: { type: Number, default: 0 },
   },
   { timestamps: true },
